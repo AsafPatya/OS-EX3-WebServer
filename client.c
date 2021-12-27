@@ -42,6 +42,7 @@ void clientSend(int fd, char *filename)
 /*
  * Read the HTTP response and print it out
  */
+
 void clientPrint(int fd)
 {
   rio_t rio;
