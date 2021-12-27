@@ -2,28 +2,31 @@
 // Created by student on 12/27/21.
 //
 
-#include "list.h"
+#include "generic_list.h"
 #include "stdlib.h"
+#include <stdio.h>
 
 ///
 /// Node section
 ///
 
 Node nodeCreate(Data data,CopyDataFunction copyDataFunction, FreeDataFunction freeDataFunction) {
-    Node newNode = malloc(sizeof(*new_node));
+    Node newNode = malloc(sizeof(*newNode));
     if (newNode == NULL) {
         return NULL;
     }
-    newNode->data = copyDataFunction(data);
-    if(newNode->data == NULL){
-        free(newNode);
-        return NULL;
+    if(data != NULL){
+        newNode->data = copyDataFunction(data);
+        if (newNode->data == NULL) {
+            free(newNode);
+            return NULL;
+        }
     }
     newNode->next = NULL;
     newNode->prev = NULL;
     newNode->copyDataFunction = copyDataFunction;
     newNode->freeDataFunction = freeDataFunction;
-    return new_node;
+    return newNode;
 }
 
 int isNodeEdge(Node node){
@@ -91,11 +94,11 @@ List listCreate(CopyDataFunction copyDataFunction, FreeDataFunction freeDataFunc
 }
 
 
-ListResult ListPushBack(List list, Data data){
+ListResult listPushBack(List list, Data data){
     if(list == NULL || data == NULL){
         return LS_NULL_ARGUMENT;
     }
-    Node node = nodeCreate(list->freeDataFunction);
+    Node node = nodeCreate(data, list->copyDataFunction,list->freeDataFunction);
     if(node == NULL){
         return LS_OUT_OF_MEMORY;
     }
@@ -104,11 +107,11 @@ ListResult ListPushBack(List list, Data data){
     return LS_SUCCESS;
 }
 
-ListResult ListPushFront(List list, Data data){
+ListResult listPushFront(List list, Data data){
     if(list == NULL || data == NULL){
         return LS_NULL_ARGUMENT;
     }
-    Node node = nodeCreate(list->freeDataFunction);
+    Node node = nodeCreate(data, list->copyDataFunction,list->freeDataFunction);
     if(node == NULL){
         return LS_OUT_OF_MEMORY;
     }
@@ -122,11 +125,15 @@ Data listPopFront(List list){
         return NULL;
     }
     Node temp = list->head->next;
+    Data data = list->copyDataFunction(temp->data);
+    if(data == NULL){
+        return NULL;
+    }
     list->head->next = temp->next;
     temp->next->prev = list->head;
 
-    Data data = temp->data;
     nodeFree(temp);
+    list->size--;
     return data;
 }
 
@@ -135,10 +142,30 @@ Data listPopBack(List list){
         return NULL;
     }
     Node temp = list->tail->prev;
+    Data data = list->copyDataFunction(temp->data);
+    if(data == NULL){
+        return NULL;
+    }
     list->tail->prev = temp->prev;
     temp->prev->next = list->tail;
 
-    Data data = temp->data;
     nodeFree(temp);
+    list->size--;
     return data;
+}
+
+int listGetSize(List list){
+    return  list->size;
+}
+
+void listPrint(List list){
+    Node node = list->head;
+    int size = listGetSize(list);
+    if(size == 0)
+        return;
+    for (int i = 0; i < size; ++i) {
+        node = node->next;
+        int* d = (int*)(node->data);
+        printf("%d. %d\n", i, *d);
+    }
 }
