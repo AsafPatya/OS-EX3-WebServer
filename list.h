@@ -39,11 +39,13 @@ typedef struct list_t{
 
 List listCreate(CopyDataFunction copyDataFunction,FreeDataFunction freeDataFunction);
 
-ListResult ListPushBack(List list, Data data);
-ListResult ListPushFront(List list, Data data);
+ListResult listPushBack(List list, Data data);
+ListResult listPushFront(List list, Data data);
 
 Data listPopFront(List list);
 Data listPopBack(List list);
 
-int getSize(List list){return  list->size}
+int listGetSize(List list);
+
+void listPrint(List list);
 #endif //OS_EX3_WEBSERVER_LIST_H
