@@ -12,7 +12,6 @@
 // Most of the work is done within routines written in request.c
 //
 
-// HW3: Parse the new arguments too
 void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc, char *argv[])
 {
     if (argc < 5)
