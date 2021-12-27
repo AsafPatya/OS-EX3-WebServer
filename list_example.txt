@@ -1,0 +1,50 @@
+#include <stdio.h>
+#include "generic_list.h"
+#include "stdlib.h"
+
+int* copyInt(int* p){
+    int*f = malloc(sizeof (*f));
+    *f = *p;
+    return f;
+}
+
+ void deleteInt(int*p){
+    free(p);
+}
+
+ void *copyData(void *data)
+{
+    return copyInt(data);
+}
+
+ void freeData(void *data)
+{
+    deleteInt(data);
+}
+
+int main() {
+    List list = listCreate(copyData, freeData);
+
+
+    int* p0 = malloc(sizeof (*p0));
+    *p0 = 0;
+    int* p1 = malloc(sizeof (*p1));
+    *p1 = 1;
+    int* p2 = malloc(sizeof (*p2));
+    *p2 = 2;
+    int* p3 = malloc(sizeof (*p3));
+    *p3 = 3;
+
+    listPushFront(list,p0);
+    listPushFront(list,p1);
+    listPushFront(list,p2);
+    listPushBack(list, p3);
+
+
+    listPrint(list);
+    int* f = listPopFront(list);
+    int* b = listPopBack(list);
+    printf("front: %d, back: %d\n", *f, *b);
+    listPrint(list);
+    return 0;
+}
