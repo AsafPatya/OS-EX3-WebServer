@@ -2,7 +2,7 @@
 // Created by student on 12/27/21.
 //
 
-#include "list.h"
+#include "generic_list.h"
 #include "stdlib.h"
 #include <stdio.h>
 
@@ -10,7 +10,7 @@
 /// Node section
 ///
 
-Node nodeCreate(Data data,CopyDataFunction copyDataFunction, FreeDataFunction freeDataFunction) {
+Node nodeCreate(Data data,CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction, FreeDataFunction freeDataFunction) {
     Node newNode = malloc(sizeof(*newNode));
     if (newNode == NULL) {
         return NULL;
@@ -25,6 +25,7 @@ Node nodeCreate(Data data,CopyDataFunction copyDataFunction, FreeDataFunction fr
     newNode->next = NULL;
     newNode->prev = NULL;
     newNode->copyDataFunction = copyDataFunction;
+    newNode->compareDataFunction = compareDataFunction;
     newNode->freeDataFunction = freeDataFunction;
     return newNode;
 }
@@ -64,21 +65,22 @@ void nodeFree(Node node){
 /// List section
 ///
 
-List listCreate(CopyDataFunction copyDataFunction, FreeDataFunction freeDataFunction){
+List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction,FreeDataFunction freeDataFunction){
     List list = malloc(sizeof(*list));
     if(list == NULL){
         return NULL;
     }
     list->copyDataFunction = copyDataFunction;
+    list->compareDataFunction = compareDataFunction;
     list->freeDataFunction = freeDataFunction;
 
-    list->head = nodeCreate(NULL, copyDataFunction, freeDataFunction);
+    list->head = nodeCreate(NULL, copyDataFunction, compareDataFunction,freeDataFunction);
     if(list->head == NULL){
         free(list);
         return NULL;
     }
 
-    list->tail = nodeCreate(NULL, copyDataFunction, freeDataFunction);
+    list->tail = nodeCreate(NULL, copyDataFunction, compareDataFunction, freeDataFunction);
     if(list->tail == NULL){
         nodeFree(list->head);
         free(list);
@@ -98,7 +100,7 @@ ListResult listPushBack(List list, Data data){
     if(list == NULL || data == NULL){
         return LS_NULL_ARGUMENT;
     }
-    Node node = nodeCreate(data, list->copyDataFunction,list->freeDataFunction);
+    Node node = nodeCreate(data, list->copyDataFunction, list->compareDataFunction,list->freeDataFunction);
     if(node == NULL){
         return LS_OUT_OF_MEMORY;
     }
@@ -111,12 +113,32 @@ ListResult listPushFront(List list, Data data){
     if(list == NULL || data == NULL){
         return LS_NULL_ARGUMENT;
     }
-    Node node = nodeCreate(data, list->copyDataFunction,list->freeDataFunction);
+    Node node = nodeCreate(data, list->copyDataFunction, list->compareDataFunction,list->freeDataFunction);
     if(node == NULL){
         return LS_OUT_OF_MEMORY;
     }
     list->size++;
     nodeSetNext(list->head, node);
+    return LS_SUCCESS;
+}
+
+ListResult listInsertAtIndex(List list, int index, Data data){
+    if(list == NULL || data == NULL){
+        return LS_NULL_ARGUMENT;
+    }
+    if(index > list->size){
+        return  LS_OUT_OF_INDEX;
+    }
+    Node node = nodeCreate(data, list->copyDataFunction, list->compareDataFunction,list->freeDataFunction);
+    if(node == NULL){
+        return LS_OUT_OF_MEMORY;
+    }
+    Node currentNode = list->head;
+    for (int i = 0; i < index; ++i) {
+        currentNode = currentNode->next;
+    }
+    nodeSetNext(currentNode, node);
+    list->size++;
     return LS_SUCCESS;
 }
 
@@ -152,6 +174,66 @@ Data listPopBack(List list){
     nodeFree(temp);
     list->size--;
     return data;
+}
+
+Data _removeNode(List list, Node currentNode){
+    Data removedData;
+
+    Node prev = currentNode->prev;
+    Node next = currentNode->next;
+
+    prev->next = next;
+    next->prev = prev;
+
+    removedData = list->copyDataFunction(currentNode->data);
+
+    nodeFree(currentNode);
+    return removedData;
+}
+
+//ListResult listRemoveAtIndex(List list, int index, Data removedData){
+//    if(list == NULL){
+//        return LS_NULL_ARGUMENT;
+//    }
+//    if(list->size == 0){
+//        return LS_EMPTY;
+//    }
+//    if(index > list->size || index < 0){
+//        return  LS_OUT_OF_INDEX;
+//    }
+//    Node currentNode = list->head;
+//    for (int i = 0; i < index; ++i) {
+//        currentNode = currentNode->next;
+//    }
+//    removedData = _removeNode(list, currentNode);
+//    list->size--;
+//
+//    return LS_SUCCESS;
+//}
+
+ListResult listRemoveAtData(List list, Data data, Data* removedData){
+    if(list == NULL){
+        return LS_NULL_ARGUMENT;
+    }
+    if(list->size == 0){
+        return LS_EMPTY;
+    }
+    int founded = 0;
+    Node currentNode = list->head->next;
+    while (!isNodeEdge(currentNode)){
+        if(list->compareDataFunction(currentNode->data, data) == 0){
+            founded = 1;
+            break;
+        }
+        currentNode = currentNode->next;
+    }
+    if(!founded){
+        return LS_NOT_FOUND;
+    }
+    *removedData = _removeNode(list, currentNode);
+    list->size--;
+
+    return LS_SUCCESS;
 }
 
 int listGetSize(List list){
