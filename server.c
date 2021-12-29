@@ -6,6 +6,8 @@ pthread_mutex_t Lock;
 pthread_cond_t isWaitingQueueEmpty;
 pthread_cond_t isWaitingQueueFull;
 //todo: declaration of struct Queue WaitingQueue
+WaitingQueue;
+WorkingQueue;
 //todo: declaration of struct Queue WorkingQueue
 
 void thread_function(void* thread)
@@ -19,6 +21,8 @@ void thread_function(void* thread)
     }
 
     // todo: implement GetFirstReqWaitingQueue
+    // todo: implement RemoveReqFromWaitingQueue
+    // todo: implement AddNewReqToWorkingQueue
     FirstReqInWaitingQueue = GetFirstReqWaitingQueue(WaitingQueue);
     int fd = FirstReqInWaitingQueue->fd;
     RemoveReqFromWaitingQueue(fd);
@@ -70,6 +74,13 @@ void threads_pool_initialization(int threads){
         }
     }
 }
+void AddToWaitingQueue(Queue WaitingQueue, int connfd)
+{
+    //todo: implement enqueueWaitingQueue
+    enqueueWaitingQueue(WaitingQueue, connfd);
+    pthread_cond_signal(&isWaitingQueueEmpty);
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -77,6 +88,10 @@ int main(int argc, char *argv[])
     struct sockaddr_in clientaddr;
     char* schedalg;
     getargs(&port, &threads, &queue_size, &schedalg, argc, argv);
+
+    pthread_mutex_init(&Lock, NULL);
+    pthread_cond_init(&isWaitingQueueEmpty, NULL);
+    pthread_cond_init(&isWaitingQueueFull, NULL);
 
     threads_pool_initialization(threads);
     queues_initialization(queue_size);
@@ -87,10 +102,19 @@ int main(int argc, char *argv[])
     {
 	    clientlen = sizeof(clientaddr);
     	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
+        pthread_mutex_lock(&Lock);
 
-	    requestHandle(connfd);
+        //todo: implement ReqNumberLessThenMax
+        if (ReqNumberLessThenMax())
+        {
+            AddToWaitingQueue(WaitingQueue, connfd);
+            pthread_mutex_unlock(&Lock);
+        }
+        else
+        {
 
-	    Close(connfd);
+        }
+
     }
 
 }
