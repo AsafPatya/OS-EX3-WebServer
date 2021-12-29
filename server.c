@@ -1,6 +1,5 @@
 #include "segel.h"
 #include "request.h"
-#include "pool.h"
 
 // 
 // server.c: A very, very simple web server
@@ -32,7 +31,6 @@ int main(int argc, char *argv[])
     struct sockaddr_in clientaddr;
     char* schedalg;
     getargs(&port, &threads, &queue_size, &schedalg, argc, argv);
-    pool pool = create_new_pool(threads);
     listenfd = Open_listenfd(port);
 
     while (1)
