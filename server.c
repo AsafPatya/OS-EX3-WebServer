@@ -1,10 +1,10 @@
 #include "segel.h"
 #include "request.h"
-#include "Thread.h"
+#include "WorkerThread.h"
 
 pthread_mutex_t Lock;
-pthread_cond_t isWaitingQueueEmpty;
-pthread_cond_t isWaitingQueueFull;
+pthread_cond_t WaitingQueueEmpty;
+pthread_cond_t QueuesFull;
 //todo: declaration of struct Queue WaitingQueue
 WaitingQueue;
 WorkingQueue;
@@ -12,12 +12,12 @@ WorkingQueue;
 
 void thread_function(void* thread)
 {
-    Thread* this_thread = (Thread*)thread;
+    WorkerThread* this_thread = (WorkerThread*)thread;
     pthread_mutex_lock(&Lock);
     //todo: implement IsWaitingQueueEmpty
     while(IsWaitingQueueEmpty(WaitingQueue))
     {
-        pthread_cond_wait(&isWaitingQueueEmpty, &Lock);
+        pthread_cond_wait(&WaitingQueueEmpty, &Lock);
     }
 
     // todo: implement GetFirstReqWaitingQueue
@@ -35,7 +35,7 @@ void thread_function(void* thread)
     Close(fd);
 
     pthread_mutex_lock(&Lock);
-    pthread_cond_signal(&isWaitingQueueFull);
+    pthread_cond_signal(&QueuesFull);
     pthread_mutex_unlock(&Lock);
 
 
@@ -66,7 +66,7 @@ void threads_pool_initialization(int threads){
     pthread_t *threads_pool = (pthread_t*)calloc(number_of_threads, sizeof(pthread_t));
     for (int i = 0; i < number_of_threads; i++)
     {
-        Thread* thread = create_thread(i);
+        WorkerThread* thread = create_thread(i);
         if (pthread_create(&(threads_pool[i]), NULL, &thread_function, (void*)thread) != 0)
         {
             fprintf(stderr, "pthread_create failed\n");
@@ -78,9 +78,21 @@ void AddToWaitingQueue(Queue WaitingQueue, int connfd)
 {
     //todo: implement enqueueWaitingQueue
     enqueueWaitingQueue(WaitingQueue, connfd);
-    pthread_cond_signal(&isWaitingQueueEmpty);
+    pthread_cond_signal(&WaitingQueueEmpty);
 }
 
+int AreStringsEqual(char* schedalg, char* s)
+{
+    int len = strlen(s);
+    for (int i = 0; i < len; i++)
+    {
+        if (schedalg[i] != s[i])
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 int main(int argc, char *argv[])
 {
@@ -90,8 +102,8 @@ int main(int argc, char *argv[])
     getargs(&port, &threads, &queue_size, &schedalg, argc, argv);
 
     pthread_mutex_init(&Lock, NULL);
-    pthread_cond_init(&isWaitingQueueEmpty, NULL);
-    pthread_cond_init(&isWaitingQueueFull, NULL);
+    pthread_cond_init(&WaitingQueueEmpty, NULL);
+    pthread_cond_init(&QueuesFull, NULL);
 
     threads_pool_initialization(threads);
     queues_initialization(queue_size);
@@ -111,8 +123,24 @@ int main(int argc, char *argv[])
             pthread_mutex_unlock(&Lock);
         }
         else
+        // not enough buffers are available (start of part2)
         {
+            if (AreStringsEqual(schedalg, "block"))
+            {
 
+            }
+            else if (AreStringsEqual(schedalg, "df"))
+            {
+
+            }
+            else if (AreStringsEqual(schedalg, "dh"))
+            {
+
+            }
+            else if (AreStringsEqual(schedalg, "random"))
+            {
+
+            }
         }
 
     }
