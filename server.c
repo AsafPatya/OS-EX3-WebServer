@@ -120,25 +120,68 @@ int main(int argc, char *argv[])
         {
             if (AreStringsEqual(schedalg, "block"))
             {
-
+                while (!requestManagerCanAcceptRequests(requestsManager))
+                {
+                    pthread_cond_wait(&QueuesFull, &Lock);
+                }
+                RequestObject requestObject = createRequestObject(connfd);
+                requestManagerAddPendingRequest(requestsManager, requestObject);
             }
-            else if (AreStringsEqual(schedalg, "df"))
-            {
 
-            }
             else if (AreStringsEqual(schedalg, "dh"))
             {
-
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+                //todo: add new function: requestManagerRemoveOldestRequestFromWaitingQueue
+                requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                RequestObject requestObject = createRequestObject(connfd);
+                requestManagerAddPendingRequest(requestsManager, requestObject);
             }
+
             else if (AreStringsEqual(schedalg, "random"))
             {
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+                //todo: add new function: requestManagerGetWaitingQueueSize
+                int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
+                double half_waiting_queue = (((double) waiting_queue_size) / 4);
+                double num_to_delete = ceil((half_waiting_queue));
+                for (int i = 0; i < num_to_delete; i++) {
+                    //rand between the queue size
+                    int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
+                    int fd_to_delete = rand() % waiting_queue_size;
 
+                    //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
+                    requestManagerRemoveRequestFromWaitingQueue(requestsManager, fd_to_delete);
+                    Close(fd_to_delete);
+                }
+                requestManagerAddPendingRequest(requestsManager, connfd);
             }
+
+            else if (AreStringsEqual(schedalg, "df"))
+            {
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+            }
+
         }
     }
     pthread_mutex_destroy(&Lock);
     pthread_cond_destroy(&WaitingQueueEmpty);
     pthread_cond_destroy(&QueuesFull);
+    //todo: add new function: DeleteQueue(webReqQueue);
 }
 
 
