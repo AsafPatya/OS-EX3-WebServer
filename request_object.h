@@ -7,8 +7,8 @@
 
 typedef struct request_object_t{
     int val;
-    struct timeval time_arrive;
-    struct timeval disp;
+//    struct timeval time_arrive;
+//    struct timeval disp;
 }*RequestObject;
 
 RequestObject createRequestObject(int val);

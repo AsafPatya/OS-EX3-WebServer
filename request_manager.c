@@ -70,6 +70,7 @@ void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject 
 }
 
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
-    RequestObject requestObject1 = {};
+    RequestObject requestObject1 = createRequestObject(0);
     listRemoveAtData(requestManager->runningRequests,requestObject,(void**)(&requestObject1));
+    //todo: there will be leak of memory
 }

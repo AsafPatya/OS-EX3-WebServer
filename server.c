@@ -4,6 +4,8 @@
 #include "request_manager.h"
 #include "request_object.h"
 
+#define MAXSCHHEDALGLEN 7
+
 pthread_mutex_t Lock;
 pthread_cond_t WaitingQueueEmpty;
 pthread_cond_t QueuesFull;
@@ -87,8 +89,8 @@ int main(int argc, char *argv[])
 {
     int listenfd, connfd, port, clientlen, threads, queue_size;
     struct sockaddr_in clientaddr;
-    char* schedalg;
-    getargs(&port, &threads, &queue_size, &schedalg, argc, argv);
+    char *schedalg = (char*)malloc(MAXSCHHEDALGLEN);
+    getargs(&port, &threads, &queue_size, schedalg, argc, argv);
 
     pthread_mutex_init(&Lock, NULL);
     pthread_cond_init(&WaitingQueueEmpty, NULL);
@@ -133,9 +135,10 @@ int main(int argc, char *argv[])
 
             }
         }
-
     }
-
+    pthread_mutex_destroy(&Lock);
+    pthread_cond_destroy(&WaitingQueueEmpty);
+    pthread_cond_destroy(&QueuesFull);
 }
 
 

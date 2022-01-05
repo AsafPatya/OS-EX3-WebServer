@@ -2,7 +2,7 @@
 // Created by student on 12/27/21.
 //
 
-#include "generic_list.h"
+#include "list.h"
 #include "stdlib.h"
 #include <stdio.h>
 
