@@ -18,7 +18,7 @@ typedef struct request_manager_t{
 }*RequestManager;
 
 RequestManager requestManagerCreate(int threadsNum, int maxAcceptedRequests);
-
+int requestManagerGetWaitingQueueSize(RequestManager requestManager);
 int requestManagerHasWaitingRequests(RequestManager requestManager);
 int requestManagerCanAcceptRequests(RequestManager requestManager);
 
@@ -28,5 +28,8 @@ RequestObject requestManagerGetReadyRequest(RequestManager requestManager);//tod
 void requestManagerAddPendingRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
 void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
+void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
+
+void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager);//todo: return status instead
 
 #endif //OS_EX3_WEBSERVER_REQUEST_MANAGER_H

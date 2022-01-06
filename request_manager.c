@@ -37,6 +37,11 @@ RequestManager requestManagerCreate(int threadsNum, int maxAcceptedRequests){
     return requestManager;
 }
 
+int requestManagerGetWaitingQueueSize(RequestManager requestManager){
+    int size = listGetSize(requestManager->waitingRequestsQueue);
+    return size;
+}
+
 int requestManagerHasWaitingRequests(RequestManager requestManager){
     int size = listGetSize(requestManager->waitingRequestsQueue);
     if(size > 1) return 1;
@@ -70,7 +75,17 @@ void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject 
 }
 
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
-    RequestObject requestObject1 = createRequestObject(0);
+    RequestObject requestObject1 = createRequestObject(-2);
     listRemoveAtData(requestManager->runningRequests,requestObject,(void**)(&requestObject1));
     //todo: there will be leak of memory
+}
+
+void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
+    RequestObject requestObject1 = createRequestObject(-2);
+    listRemoveAtData(requestManager->waitingRequestsQueue,requestObject,(void**)(&requestObject1));
+    //todo: there will be leak of memory
+}
+
+void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
+    listPopFront(requestManager->waitingRequestsQueue);
 }
