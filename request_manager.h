@@ -13,7 +13,7 @@ typedef struct request_manager_t{
     List waitingRequestsQueue;
 
     int maxAcceptedRequests;
-    int threadsNum;
+    int threadsNum;//todo: remove
 
 }*RequestManager;
 
@@ -22,6 +22,7 @@ RequestManager requestManagerCreate(int threadsNum, int maxAcceptedRequests);
 int requestManagerHasWaitingRequests(RequestManager requestManager);
 int requestManagerCanAcceptRequests(RequestManager requestManager);
 
+//todo: change function name
 RequestObject requestManagerGetReadyRequest(RequestManager requestManager);//todo: return status instead
 
 void requestManagerAddPendingRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead

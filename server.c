@@ -1,32 +1,29 @@
 #include "segel.h"
 #include "request.h"
 #include "WorkerThread.h"
+#include "request_manager.h"
+#include "request_object.h"
+
+#define MAXSCHHEDALGLEN 7
 
 pthread_mutex_t Lock;
 pthread_cond_t WaitingQueueEmpty;
 pthread_cond_t QueuesFull;
-//todo: declaration of struct Queue WaitingQueue
-WaitingQueue;
-WorkingQueue;
-//todo: declaration of struct Queue WorkingQueue
+RequestManager requestsManager;
 
-void thread_function(void* thread)
+void* thread_function(void* thread)
 {
     WorkerThread* this_thread = (WorkerThread*)thread;
     pthread_mutex_lock(&Lock);
-    //todo: implement IsWaitingQueueEmpty
-    while(IsWaitingQueueEmpty(WaitingQueue))
+    while(!requestManagerHasWaitingRequests(requestsManager))
     {
         pthread_cond_wait(&WaitingQueueEmpty, &Lock);
     }
+    RequestObject requestObject = requestManagerGetReadyRequest(requestsManager);
+    //todo: change the time
+    requestManagerAddReadyRequest(requestsManager, requestObject);
 
-    // todo: implement GetFirstReqWaitingQueue
-    // todo: implement RemoveReqFromWaitingQueue
-    // todo: implement AddNewReqToWorkingQueue
-    FirstReqInWaitingQueue = GetFirstReqWaitingQueue(WaitingQueue);
-    int fd = FirstReqInWaitingQueue->fd;
-    RemoveReqFromWaitingQueue(fd);
-    AddNewReqToWorkingQueue(fd);
+    int fd = requestObject->val;
 
     pthread_mutex_unlock(&Lock);
 
@@ -35,11 +32,11 @@ void thread_function(void* thread)
     Close(fd);
 
     pthread_mutex_lock(&Lock);
+    requestManagerRemoveFinishedRequest(requestsManager, requestObject);
+    //todo:delete requestObject
     pthread_cond_signal(&QueuesFull);
     pthread_mutex_unlock(&Lock);
-
-
-
+    return NULL;
 }
 
 void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc, char *argv[])
@@ -57,7 +54,7 @@ void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc,
 
 void queues_initialization(int queue_size)
 {
-    //todo: initialization of the two queues
+    requestsManager = requestManagerCreate(0, queue_size);
 }
 
 void threads_pool_initialization(int threads){
@@ -73,12 +70,6 @@ void threads_pool_initialization(int threads){
             exit(1);
         }
     }
-}
-void AddToWaitingQueue(Queue WaitingQueue, int connfd)
-{
-    //todo: implement enqueueWaitingQueue
-    enqueueWaitingQueue(WaitingQueue, connfd);
-    pthread_cond_signal(&WaitingQueueEmpty);
 }
 
 int AreStringsEqual(char* schedalg, char* s)
@@ -98,8 +89,8 @@ int main(int argc, char *argv[])
 {
     int listenfd, connfd, port, clientlen, threads, queue_size;
     struct sockaddr_in clientaddr;
-    char* schedalg;
-    getargs(&port, &threads, &queue_size, &schedalg, argc, argv);
+    char *schedalg = (char*)malloc(MAXSCHHEDALGLEN);
+    getargs(&port, &threads, &queue_size, schedalg, argc, argv);
 
     pthread_mutex_init(&Lock, NULL);
     pthread_cond_init(&WaitingQueueEmpty, NULL);
@@ -116,10 +107,12 @@ int main(int argc, char *argv[])
     	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
         pthread_mutex_lock(&Lock);
 
-        //todo: implement ReqNumberLessThenMax
-        if (ReqNumberLessThenMax())
+        if (requestManagerCanAcceptRequests(requestsManager))
         {
-            AddToWaitingQueue(WaitingQueue, connfd);
+            RequestObject requestObject = createRequestObject(connfd);
+            requestManagerAddPendingRequest(requestsManager,requestObject);
+            //todo: free requestObject
+            pthread_cond_signal(&WaitingQueueEmpty);
             pthread_mutex_unlock(&Lock);
         }
         else
@@ -127,24 +120,68 @@ int main(int argc, char *argv[])
         {
             if (AreStringsEqual(schedalg, "block"))
             {
-
+                while (!requestManagerCanAcceptRequests(requestsManager))
+                {
+                    pthread_cond_wait(&QueuesFull, &Lock);
+                }
+                RequestObject requestObject = createRequestObject(connfd);
+                requestManagerAddPendingRequest(requestsManager, requestObject);
             }
-            else if (AreStringsEqual(schedalg, "df"))
-            {
 
-            }
             else if (AreStringsEqual(schedalg, "dh"))
             {
-
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+                //todo: add new function: requestManagerRemoveOldestRequestFromWaitingQueue
+                requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                RequestObject requestObject = createRequestObject(connfd);
+                requestManagerAddPendingRequest(requestsManager, requestObject);
             }
+
             else if (AreStringsEqual(schedalg, "random"))
             {
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+                //todo: add new function: requestManagerGetWaitingQueueSize
+                int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
+                double half_waiting_queue = (((double) waiting_queue_size) / 4);
+                double num_to_delete = ceil((half_waiting_queue));
+                for (int i = 0; i < num_to_delete; i++) {
+                    //rand between the queue size
+                    int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
+                    int fd_to_delete = rand() % waiting_queue_size;
 
+                    //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
+                    requestManagerRemoveRequestFromWaitingQueue(requestsManager, fd_to_delete);
+                    Close(fd_to_delete);
+                }
+                requestManagerAddPendingRequest(requestsManager, connfd);
             }
+
+            else if (AreStringsEqual(schedalg, "df"))
+            {
+                if (!requestManagerHasWaitingRequests(requestsManager))
+                {
+                    Close(connfd);
+                    pthread_mutex_unlock(&Lock);
+                    continue;
+                }
+            }
+
         }
-
     }
-
+    pthread_mutex_destroy(&Lock);
+    pthread_cond_destroy(&WaitingQueueEmpty);
+    pthread_cond_destroy(&QueuesFull);
+    //todo: add new function: DeleteQueue(webReqQueue);
 }
 
 
