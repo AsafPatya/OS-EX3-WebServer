@@ -24,11 +24,16 @@ void* thread_function(void* thread)
     requestManagerAddReadyRequest(requestsManager, requestObject);
 
     int fd = requestObject->val;
+    //todo: add 2 new features to requestObject
+//    struct timeval arrival_time = requestObject->arrival_time;
+//    struct timeval dispatch_interval = requestObject->dispatch_interval;
 
     pthread_mutex_unlock(&Lock);
 
-    // todo: check in part2 and part3 and fix this call
-    requestHandle(fd);
+//    requestHandle(fd, this_thread, arrival_time, dispatch_interval);
+    struct timeval arrival_time;
+    gettimeofday(&(arrival_time),NULL);
+    requestHandle(fd, this_thread, arrival_time, arrival_time);
     Close(fd);
 
     pthread_mutex_lock(&Lock);
@@ -160,6 +165,7 @@ int main(int argc, char *argv[])
                     int fd_to_delete = rand() % waiting_queue_size;//TODO: create RO from fd_to_delete
 
                     //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
+                    //todo: didnt complete it
                     requestManagerRemoveRequestFromWaitingQueue(requestsManager, fd_to_delete);
                     Close(fd_to_delete);
                 }

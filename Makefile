@@ -8,8 +8,8 @@ TARGET = server
 CC = gcc
 CFLAGS = -g -Wall
 
-LIBS = -lpthread
-#LIBS = -lpthread -lm
+#LIBS = -lpthread
+LIBS = -lpthread -lm
 
 .SUFFIXES: .c .o 
 
