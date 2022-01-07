@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                 for (int i = 0; i < num_to_delete; i++) {
                     //rand between the queue size
                     int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                    int fd_to_delete = rand() % waiting_queue_size;
+                    int fd_to_delete = rand() % waiting_queue_size;//TODO: create RO from fd_to_delete
 
                     //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
                     requestManagerRemoveRequestFromWaitingQueue(requestsManager, fd_to_delete);
@@ -175,7 +175,6 @@ int main(int argc, char *argv[])
                     continue;
                 }
             }
-
         }
     }
     pthread_mutex_destroy(&Lock);
