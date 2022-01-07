@@ -180,46 +180,56 @@ void requestServeStatic(int fd, char *filename, int filesize, WorkerThread* work
 }
 
 // handle a request
-void requestHandle(int fd)
+void requestHandle(int fd, WorkerThread* workerThread, struct timeval arrival_time, struct timeval dispatch_interval)
 {
+    workerThread->thread_count++;
+    int is_static;
+    struct stat sbuf;
+    char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
+    char filename[MAXLINE], cgiargs[MAXLINE];
+    rio_t rio;
 
-   int is_static;
-   struct stat sbuf;
-   char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
-   char filename[MAXLINE], cgiargs[MAXLINE];
-   rio_t rio;
+    Rio_readinitb(&rio, fd);
+    Rio_readlineb(&rio, buf, MAXLINE);
+    sscanf(buf, "%s %s %s", method, uri, version);
 
-   Rio_readinitb(&rio, fd);
-   Rio_readlineb(&rio, buf, MAXLINE);
-   sscanf(buf, "%s %s %s", method, uri, version);
+    printf("%s %s %s\n", method, uri, version);
 
-   printf("%s %s %s\n", method, uri, version);
-
-   if (strcasecmp(method, "GET")) {
-      requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method");
+    if (strcasecmp(method, "GET"))
+    {
+      requestError(fd, method, "501", "Not Implemented", "OS-HW3 Server does not implement this method",
+                   workerThread, arrival_time, dispatch_interval);
       return;
-   }
-   requestReadhdrs(&rio);
-
-   is_static = requestParseURI(uri, filename, cgiargs);
-   if (stat(filename, &sbuf) < 0) {
-      requestError(fd, filename, "404", "Not found", "OS-HW3 Server could not find this file");
+    }
+    requestReadhdrs(&rio);
+    is_static = requestParseURI(uri, filename, cgiargs);
+    if (stat(filename, &sbuf) < 0)
+    {
+      requestError(fd, filename, "404", "Not found", "OS-HW3 Server could not find this file",
+                   workerThread, arrival_time, dispatch_interval);
       return;
-   }
+    }
 
-   if (is_static) {
-      if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
-         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file");
+    if (is_static)
+    {
+      if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode))
+      {
+         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not read this file",
+                      workerThread, arrival_time, dispatch_interval);
          return;
       }
-      requestServeStatic(fd, filename, sbuf.st_size);
-   } else {
-      if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)) {
-         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program");
+      requestServeStatic(fd, filename, sbuf.st_size, workerThread, arrival_time, dispatch_interval);
+    }
+    else
+    {
+      if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode))
+      {
+         requestError(fd, filename, "403", "Forbidden", "OS-HW3 Server could not run this CGI program",
+                      workerThread, arrival_time, dispatch_interval);
          return;
       }
-      requestServeDynamic(fd, filename, cgiargs);
-   }
+      requestServeDynamic(fd, filename, cgiargs, workerThread, arrival_time, dispatch_interval);
+    }
 }
 
 
