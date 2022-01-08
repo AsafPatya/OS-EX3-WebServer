@@ -51,7 +51,7 @@ ListResult listInsertAtIndex(List list, int index, Data data);
 Data listPopFront(List list);
 Data listPopBack(List list);
 
-//ListResult listRemoveAtIndex(List list, int index, Data removedData);
+ListResult listRemoveAtIndex(List list, int index, Data* removedData);
 ListResult listRemoveAtData(List list, Data data, Data* removedData);
 
 int listGetSize(List list);

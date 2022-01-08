@@ -191,25 +191,25 @@ Data _removeNode(List list, Node currentNode){
     return removedData;
 }
 
-//ListResult listRemoveAtIndex(List list, int index, Data removedData){
-//    if(list == NULL){
-//        return LS_NULL_ARGUMENT;
-//    }
-//    if(list->size == 0){
-//        return LS_EMPTY;
-//    }
-//    if(index > list->size || index < 0){
-//        return  LS_OUT_OF_INDEX;
-//    }
-//    Node currentNode = list->head;
-//    for (int i = 0; i < index; ++i) {
-//        currentNode = currentNode->next;
-//    }
-//    removedData = _removeNode(list, currentNode);
-//    list->size--;
-//
-//    return LS_SUCCESS;
-//}
+ListResult listRemoveAtIndex(List list, int index, Data* removedData){
+    if(list == NULL){
+        return LS_NULL_ARGUMENT;
+    }
+    if(list->size == 0){
+        return LS_EMPTY;
+    }
+    if(index > list->size || index < 0){
+        return  LS_OUT_OF_INDEX;
+    }
+    Node currentNode = list->head;
+    for (int i = 0; i < index; ++i) {
+        currentNode = currentNode->next;
+    }
+    *removedData = _removeNode(list, currentNode);
+    list->size--;
+
+    return LS_SUCCESS;
+}
 
 ListResult listRemoveAtData(List list, Data data, Data* removedData){
     if(list == NULL){

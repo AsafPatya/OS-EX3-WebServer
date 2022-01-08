@@ -80,17 +80,16 @@ void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestO
     //todo: there will be leak of memory
 }
 
-//void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
-//    RequestObject requestObject1 = createRequestObject(-2);
-//    listRemoveAtData(requestManager->waitingRequestsQueue,requestObject,(void**)(&requestObject1));
-//    //todo: there will be leak of memory
-//}
-
-void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject)
-{
-
+void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject){
+    RequestObject requestObject1 = createRequestObject(-2);
+    listRemoveAtData(requestManager->waitingRequestsQueue,requestObject,(void**)(&requestObject1));
+    //todo: there will be leak of memory
 }
 
+void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index) {
+    RequestObject requestObject1 = createRequestObject(-2);
+    listRemoveAtIndex(requestManager->waitingRequestsQueue, index, (void**)(&requestObject1));
+}
 
 void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
     listPopFront(requestManager->waitingRequestsQueue);

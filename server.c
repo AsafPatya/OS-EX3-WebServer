@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                 }
                 //todo: add new function: requestManagerGetWaitingQueueSize
                 int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                double half_waiting_queue = (((double) waiting_queue_size) / 4);
+                double half_waiting_queue = (((double) waiting_queue_size) / 4);///todo: why 0.25 instead of 0.5
                 double num_to_delete = ceil((half_waiting_queue));
                 for (int i = 0; i < num_to_delete; i++) {
                     //rand between the queue size
@@ -165,11 +165,12 @@ int main(int argc, char *argv[])
                     int fd_to_delete = rand() % waiting_queue_size;//TODO: create RO from fd_to_delete
 
                     //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
-                    //todo: didnt complete it
-                    requestManagerRemoveRequestFromWaitingQueue(requestsManager, fd_to_delete);
+                    requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
                     Close(fd_to_delete);
                 }
-                requestManagerAddPendingRequest(requestsManager, connfd);
+                RequestObject requestObject = createRequestObject(connfd);
+                requestManagerAddPendingRequest(requestsManager,requestObject);
+                //todo: free requestObject
             }
 
             else if (AreStringsEqual(schedalg, "df"))
