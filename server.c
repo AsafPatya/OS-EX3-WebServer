@@ -20,20 +20,15 @@ void* thread_function(void* thread)
         pthread_cond_wait(&WaitingQueueEmpty, &Lock);
     }
     RequestObject requestObject = requestManagerGetReadyRequest(requestsManager);
-    //todo: change the time
     requestManagerAddReadyRequest(requestsManager, requestObject);
 
     int fd = requestObject->val;
-    //todo: add 2 new features to requestObject
-//    struct timeval arrival_time = requestObject->arrival_time;
-//    struct timeval dispatch_interval = requestObject->dispatch_interval;
+    struct timeval arrival_time = requestObject->time_arrive;
+    struct timeval dispatch_interval = requestObject->disp;
 
     pthread_mutex_unlock(&Lock);
 
-//    requestHandle(fd, this_thread, arrival_time, dispatch_interval);
-    struct timeval arrival_time;
-    gettimeofday(&(arrival_time),NULL);
-    requestHandle(fd, this_thread, arrival_time, arrival_time);
+    requestHandle(fd, this_thread, arrival_time, dispatch_interval);
     Close(fd);
 
     pthread_mutex_lock(&Lock);
@@ -65,11 +60,13 @@ void queues_initialization(int queue_size)
 void threads_pool_initialization(int threads){
     int number_of_threads = threads;
 
-    pthread_t *threads_pool = (pthread_t*)calloc(number_of_threads, sizeof(pthread_t));
+    pthread_t *thread_pool = (pthread_t *)malloc(sizeof(pthread_t) * number_of_threads);
+    memset(thread_pool, 0, number_of_threads * sizeof(thread_pool[0]));
+
     for (int i = 0; i < number_of_threads; i++)
     {
         WorkerThread* thread = create_thread(i);
-        if (pthread_create(&(threads_pool[i]), NULL, &thread_function, (void*)thread) != 0)
+        if (pthread_create(&(thread_pool[i]), NULL, &thread_function, (void*)thread) != 0)
         {
             fprintf(stderr, "pthread_create failed\n");
             exit(1);
@@ -100,9 +97,9 @@ int main(int argc, char *argv[])
     pthread_mutex_init(&Lock, NULL);
     pthread_cond_init(&WaitingQueueEmpty, NULL);
     pthread_cond_init(&QueuesFull, NULL);
-
-    threads_pool_initialization(threads);
     queues_initialization(queue_size);
+    threads_pool_initialization(threads);
+
 
     listenfd = Open_listenfd(port);
 
@@ -155,7 +152,6 @@ int main(int argc, char *argv[])
                     pthread_mutex_unlock(&Lock);
                     continue;
                 }
-                //todo: add new function: requestManagerGetWaitingQueueSize
                 int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
                 double half_waiting_queue = (((double) waiting_queue_size) / 4);///todo: why 0.25 instead of 0.5
                 double num_to_delete = ceil((half_waiting_queue));
@@ -164,7 +160,6 @@ int main(int argc, char *argv[])
                     int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
                     int fd_to_delete = rand() % waiting_queue_size;//TODO: create RO from fd_to_delete
 
-                    //todo: add new function: requestManagerRemoveRequestFromWaitingQueue
                     requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
                     Close(fd_to_delete);
                 }
@@ -187,7 +182,7 @@ int main(int argc, char *argv[])
     pthread_mutex_destroy(&Lock);
     pthread_cond_destroy(&WaitingQueueEmpty);
     pthread_cond_destroy(&QueuesFull);
-    //todo: add new function: DeleteQueue(webReqQueue);
+    requestManagerDelete(requestsManager);
 }
 
 

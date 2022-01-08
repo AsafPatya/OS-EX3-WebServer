@@ -15,7 +15,13 @@ RequestObject createRequestObject(int val){
 }
 
 RequestObject copyRequestObject(RequestObject requestObject){
-    return createRequestObject(requestObject->val);
+    RequestObject requestObject1 = createRequestObject(requestObject->val);
+    requestObject1->time_arrive.tv_sec = requestObject->time_arrive.tv_sec;
+    requestObject1->time_arrive.tv_usec = requestObject->time_arrive.tv_usec;
+
+    requestObject1->disp.tv_sec = requestObject->disp.tv_sec;
+    requestObject1->disp.tv_usec = requestObject->disp.tv_usec;
+    return requestObject1;
 }
 
 int compareRequestObject(RequestObject requestObject1, RequestObject requestObject2){
@@ -26,4 +32,8 @@ int compareRequestObject(RequestObject requestObject1, RequestObject requestObje
 
 void deleteRequestObject(RequestObject requestObject){
     free(requestObject);
+}
+
+void requestObjectUpdateDispatchTime(RequestObject requestObject){
+    gettimeofday(&(requestObject->disp),NULL);
 }

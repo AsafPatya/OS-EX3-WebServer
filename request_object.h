@@ -18,6 +18,6 @@ RequestObject copyRequestObject(RequestObject requestObject);
 
 int compareRequestObject(RequestObject requestObject1, RequestObject requestObject2);
 void deleteRequestObject(RequestObject requestObject);
-
+void requestObjectUpdateDispatchTime(RequestObject requestObject);
 
 #endif //OS_EX3_WEBSERVER_REQUEST_OBJECT_H

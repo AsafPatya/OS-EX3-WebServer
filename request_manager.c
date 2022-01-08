@@ -71,6 +71,7 @@ void requestManagerAddPendingRequest(RequestManager requestManager, RequestObjec
 
 void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject requestObject){
     //todo: add only if there is enough room
+    requestObjectUpdateDispatchTime(requestObject);
     listPushBack(requestManager->runningRequests, requestObject);
 }
 
@@ -93,4 +94,8 @@ void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestMa
 
 void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
     listPopFront(requestManager->waitingRequestsQueue);
+}
+
+void requestManagerDelete(RequestManager requestManager){
+    //todo:
 }

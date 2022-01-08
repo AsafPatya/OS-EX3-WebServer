@@ -33,4 +33,5 @@ void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestMa
 
 void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager);//todo: return status instead
 
+void requestManagerDelete(RequestManager requestManager);
 #endif //OS_EX3_WEBSERVER_REQUEST_MANAGER_H
