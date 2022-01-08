@@ -44,7 +44,7 @@ int requestManagerGetWaitingQueueSize(RequestManager requestManager){
 
 int requestManagerHasWaitingRequests(RequestManager requestManager){
     int size = listGetSize(requestManager->waitingRequestsQueue);
-    if(size > 1) return 1;
+    if(size >= 1) return 1;
     return 0;
 }
 

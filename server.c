@@ -14,6 +14,7 @@ RequestManager requestsManager;
 void* thread_function(void* thread)
 {
     WorkerThread* this_thread = (WorkerThread*)thread;
+
     pthread_mutex_lock(&Lock);
     while(!requestManagerHasWaitingRequests(requestsManager))
     {
@@ -54,6 +55,7 @@ void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc,
 
 void queues_initialization(int queue_size)
 {
+    // no use in threadsNum
     requestsManager = requestManagerCreate(0, queue_size);
 }
 
@@ -101,11 +103,11 @@ int main(int argc, char *argv[])
     getargs(&port, &threads, &queue_size, schedalg, argc, argv);
 
     pthread_mutex_init(&Lock, NULL);
-    pthread_cond_init(&WaitingQueueEmpty, NULL);
-    pthread_cond_init(&QueuesFull, NULL);
+    pthread_cond_init(&WaitingQueueEmpty, NULL); // only for waiting queue
+    pthread_cond_init(&QueuesFull, NULL);        // for both queues
+
     queues_initialization(queue_size);
     threads_pool_initialization(threads);
-
 
     listenfd = Open_listenfd(port);
 
@@ -138,16 +140,19 @@ int main(int argc, char *argv[])
 
             else if (AreStringsEqual(schedalg, "dh"))
             {
-                if (!requestManagerHasWaitingRequests(requestsManager))
+                if (!requestManagerCanAcceptRequests(requestsManager))
                 {
-                    Close(connfd);
-                    pthread_mutex_unlock(&Lock);
-                    continue;
+                    if (!requestManagerHasWaitingRequests(requestsManager))
+                    {
+                        Close(connfd);
+                        pthread_mutex_unlock(&Lock);
+                        continue;
+                    }
+                    int fd1 = requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                    Close(fd1);
+                    RequestObject requestObject = createRequestObject(connfd);
+                    addSignalAndUnlock(requestObject);
                 }
-                int fd1 = requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
-                Close(fd1);
-                RequestObject requestObject = createRequestObject(connfd);
-                addSignalAndUnlock(requestObject);
             }
 
             else if (AreStringsEqual(schedalg, "random"))
