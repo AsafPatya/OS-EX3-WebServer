@@ -10,6 +10,7 @@ RequestObject createRequestObject(int val){
     if(requestObject == NULL)
         return requestObject;
     requestObject->val = val;
+    gettimeofday(&(requestObject->time_arrive),NULL);
     return requestObject;
 }
 

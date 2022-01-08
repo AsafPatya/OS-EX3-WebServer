@@ -5,10 +5,12 @@
 #ifndef OS_EX3_WEBSERVER_REQUEST_OBJECT_H
 #define OS_EX3_WEBSERVER_REQUEST_OBJECT_H
 
+#include "segel.h"
+
 typedef struct request_object_t{
     int val;
-//    struct timeval time_arrive;
-//    struct timeval disp;
+    struct timeval time_arrive;
+    struct timeval disp;
 }*RequestObject;
 
 RequestObject createRequestObject(int val);
