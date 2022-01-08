@@ -87,6 +87,12 @@ int AreStringsEqual(char* schedalg, char* s)
     return 1;
 }
 
+void addSignalAndUnlock(RequestObject requestObject){
+    requestManagerAddPendingRequest(requestsManager, requestObject);
+    pthread_cond_signal(&WaitingQueueEmpty);
+    pthread_mutex_unlock(&Lock);
+}
+
 int main(int argc, char *argv[])
 {
     int listenfd, connfd, port, clientlen, threads, queue_size;
@@ -127,7 +133,7 @@ int main(int argc, char *argv[])
                     pthread_cond_wait(&QueuesFull, &Lock);
                 }
                 RequestObject requestObject = createRequestObject(connfd);
-                requestManagerAddPendingRequest(requestsManager, requestObject);
+                addSignalAndUnlock(requestObject);
             }
 
             else if (AreStringsEqual(schedalg, "dh"))
@@ -138,10 +144,10 @@ int main(int argc, char *argv[])
                     pthread_mutex_unlock(&Lock);
                     continue;
                 }
-                //todo: add new function: requestManagerRemoveOldestRequestFromWaitingQueue
-                requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                int fd1 = requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                Close(fd1);
                 RequestObject requestObject = createRequestObject(connfd);
-                requestManagerAddPendingRequest(requestsManager, requestObject);
+                addSignalAndUnlock(requestObject);
             }
 
             else if (AreStringsEqual(schedalg, "random"))
@@ -164,11 +170,11 @@ int main(int argc, char *argv[])
                     Close(fd_to_delete);
                 }
                 RequestObject requestObject = createRequestObject(connfd);
-                requestManagerAddPendingRequest(requestsManager,requestObject);
+                addSignalAndUnlock(requestObject);
                 //todo: free requestObject
             }
 
-            else if (AreStringsEqual(schedalg, "df"))
+            else if (AreStringsEqual(schedalg, "dt"))
             {
                 if (!requestManagerHasWaitingRequests(requestsManager))
                 {

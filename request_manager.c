@@ -92,8 +92,9 @@ void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestMa
     listRemoveAtIndex(requestManager->waitingRequestsQueue, index, (void**)(&requestObject1));
 }
 
-void requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
-    listPopFront(requestManager->waitingRequestsQueue);
+int requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
+    RequestObject requestObject = listPopFront(requestManager->waitingRequestsQueue);
+    return requestObject->val;
 }
 
 void requestManagerDelete(RequestManager requestManager){
