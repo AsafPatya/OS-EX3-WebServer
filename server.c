@@ -14,30 +14,32 @@ RequestManager requestsManager;
 void* thread_function(void* thread)
 {
     WorkerThread* this_thread = (WorkerThread*)thread;
-
-    pthread_mutex_lock(&Lock);
-    while(!requestManagerHasWaitingRequests(requestsManager))
+    while (1)
     {
-        pthread_cond_wait(&WaitingQueueEmpty, &Lock);
+        pthread_mutex_lock(&Lock);
+        while(!requestManagerHasWaitingRequests(requestsManager))
+        {
+            pthread_cond_wait(&WaitingQueueEmpty, &Lock);
+        }
+        RequestObject requestObject = requestManagerGetReadyRequest(requestsManager);
+        requestManagerAddReadyRequest(requestsManager, requestObject);
+
+        int fd = requestObject->val;
+        struct timeval arrival_time = requestObject->time_arrive;
+        struct timeval dispatch_interval = requestObject->disp;
+
+        pthread_mutex_unlock(&Lock);
+
+        requestHandle(fd, this_thread, arrival_time, dispatch_interval);
+        Close(fd);
+
+        pthread_mutex_lock(&Lock);
+        requestManagerRemoveFinishedRequest(requestsManager, requestObject);
+        //todo:delete requestObject
+        pthread_cond_signal(&QueuesFull);
+        pthread_mutex_unlock(&Lock);
+        return NULL;
     }
-    RequestObject requestObject = requestManagerGetReadyRequest(requestsManager);
-    requestManagerAddReadyRequest(requestsManager, requestObject);
-
-    int fd = requestObject->val;
-    struct timeval arrival_time = requestObject->time_arrive;
-    struct timeval dispatch_interval = requestObject->disp;
-
-    pthread_mutex_unlock(&Lock);
-
-    requestHandle(fd, this_thread, arrival_time, dispatch_interval);
-    Close(fd);
-
-    pthread_mutex_lock(&Lock);
-    requestManagerRemoveFinishedRequest(requestsManager, requestObject);
-    //todo:delete requestObject
-    pthread_cond_signal(&QueuesFull);
-    pthread_mutex_unlock(&Lock);
-    return NULL;
 }
 
 void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc, char *argv[])
