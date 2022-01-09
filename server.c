@@ -38,8 +38,8 @@ void* thread_function(void* thread)
         //todo:delete requestObject
         pthread_cond_signal(&QueuesFull);
         pthread_mutex_unlock(&Lock);
-        return NULL;
     }
+    return NULL;
 }
 
 void getargs(int *port, int *threads, int *queue_size, char *schedalg, int argc, char *argv[])
@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
     int listenfd, connfd, port, clientlen, threads, queue_size;
     struct sockaddr_in clientaddr;
     char *schedalg = (char*)malloc(MAXSCHHEDALGLEN);
+
     getargs(&port, &threads, &queue_size, schedalg, argc, argv);
 
     pthread_mutex_init(&Lock, NULL);
@@ -122,15 +123,12 @@ int main(int argc, char *argv[])
         if (requestManagerCanAcceptRequests(requestsManager))
         {
             RequestObject requestObject = createRequestObject(connfd);
-            requestManagerAddPendingRequest(requestsManager,requestObject);
-            //todo: free requestObject
-            pthread_cond_signal(&WaitingQueueEmpty);
-            pthread_mutex_unlock(&Lock);
+            addSignalAndUnlock(requestObject);
         }
         else
         // not enough buffers are available (start of part2)
         {
-            if (AreStringsEqual(schedalg, "block"))
+            if (strcmp(schedalg, "block"))
             {
                 while (!requestManagerCanAcceptRequests(requestsManager))
                 {
@@ -139,8 +137,7 @@ int main(int argc, char *argv[])
                 RequestObject requestObject = createRequestObject(connfd);
                 addSignalAndUnlock(requestObject);
             }
-
-            else if (AreStringsEqual(schedalg, "dh"))
+            else if (strcmp(schedalg, "dh"))
             {
                 if (!requestManagerCanAcceptRequests(requestsManager))
                 {
@@ -157,9 +154,9 @@ int main(int argc, char *argv[])
                 }
             }
 
-            else if (AreStringsEqual(schedalg, "random"))
+            else if (strcmp(schedalg, "random"))
             {
-                if (!requestManagerHasWaitingRequests(requestsManager))
+                if (!requestManagerCanAcceptRequests(requestsManager))
                 {
                     Close(connfd);
                     pthread_mutex_unlock(&Lock);
@@ -181,9 +178,9 @@ int main(int argc, char *argv[])
                 //todo: free requestObject
             }
 
-            else if (AreStringsEqual(schedalg, "dt"))
+            else if (strcmp(schedalg, "dt"))
             {
-                if (!requestManagerHasWaitingRequests(requestsManager))
+                if (!requestManagerCanAcceptRequests(requestsManager))
                 {
                     Close(connfd);
                     pthread_mutex_unlock(&Lock);
