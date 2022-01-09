@@ -10,7 +10,7 @@ pthread_mutex_t Lock;
 pthread_cond_t WaitingQueueEmpty;
 pthread_cond_t QueuesFull;
 RequestManager requestsManager;
-
+//
 void* thread_function(void* thread)
 {
     WorkerThread* this_thread = (WorkerThread*)thread;
