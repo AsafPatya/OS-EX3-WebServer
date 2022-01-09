@@ -34,6 +34,33 @@ void deleteRequestObject(RequestObject requestObject){
     free(requestObject);
 }
 
+void dispTime( struct timeval *start, struct timeval *finish,struct timeval *ans)
+{
+
+    if (finish->tv_usec > 999999)
+    {
+        finish->tv_sec += finish->tv_usec / 1000000;
+        finish->tv_usec %= 1000000;
+    }
+
+    if (start->tv_usec > 999999)
+    {
+        start->tv_sec += start->tv_usec / 1000000;
+        start->tv_usec %= 1000000;
+    }
+
+    ans->tv_sec = finish->tv_sec - start->tv_sec;
+    ans->tv_usec = finish->tv_usec - start->tv_usec;
+
+    if (ans->tv_usec< 0)
+    {
+        ans->tv_usec += 1000000;
+        ans->tv_sec--;
+    }
+}
+
 void requestObjectUpdateDispatchTime(RequestObject requestObject){
-    gettimeofday(&(requestObject->disp),NULL);
+    struct timeval time_now;
+    gettimeofday(&time_now,NULL);
+    dispTime(&(requestObject->time_arrive),&time_now,&(requestObject->disp));
 }

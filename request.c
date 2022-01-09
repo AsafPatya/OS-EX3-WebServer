@@ -129,7 +129,7 @@ void requestServeDynamic(int fd, char *filename, char *cgiargs, WorkerThread* wo
     sprintf(buf, "%sStat-Thread-Dynamic:: %d\r\n", buf, workerThread->thread_dynamic_count);
 
     Rio_writen(fd, buf, strlen(buf));
-    int pid = Fork();
+    pid_t pid = Fork();
     if (pid == 0) {
       /* Child process */
       Setenv("QUERY_STRING", cgiargs, 1);
