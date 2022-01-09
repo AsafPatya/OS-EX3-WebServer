@@ -20,6 +20,7 @@ typedef void * Data;
 typedef Data(*CopyDataFunction)(Data data);
 typedef void(*FreeDataFunction)(Data data);
 typedef int(*CompareDataFunction)(Data data1,Data data2);
+typedef void(*Print)(Data data);
 
 typedef struct node_t {
     struct node_t *next;
@@ -37,11 +38,12 @@ typedef struct list_t{
     CopyDataFunction copyDataFunction;
     CompareDataFunction compareDataFunction;
     FreeDataFunction freeDataFunction;
+    Print print;
 
     int size;
 }*List;
 
-List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction, FreeDataFunction freeDataFunction);
+List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction, FreeDataFunction freeDataFunction, Print print);
 
 ListResult listPushBack(List list, Data data);
 ListResult listPushFront(List list, Data data);

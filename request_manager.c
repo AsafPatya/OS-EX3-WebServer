@@ -19,14 +19,19 @@ void freeData(void *data)
     deleteRequestObject((RequestObject)data);
 }
 
+void printData(void*data){
+    RequestObject requestObject = (RequestObject)data;
+    printf("|request id = %d| --> ",requestObject->val);
+}
+
 RequestManager requestManagerCreate(int threadsNum, int maxAcceptedRequests){
     RequestManager requestManager = malloc(sizeof (*requestManager));
-    requestManager->runningRequests = listCreate(copyData, compareData, freeData);
+    requestManager->runningRequests = listCreate(copyData, compareData, freeData, printData);
     if(requestManager->runningRequests == NULL){
         free(requestManager);
         return NULL;
     }
-    requestManager->waitingRequestsQueue = listCreate(copyData, compareData, freeData);
+    requestManager->waitingRequestsQueue = listCreate(copyData, compareData, freeData, printData);
     if(requestManager->waitingRequestsQueue == NULL){
         //todo:list free
         free(requestManager);
@@ -99,4 +104,18 @@ int requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestMana
 
 void requestManagerDelete(RequestManager requestManager){
     //todo:
+}
+
+
+void requestManagerPrint(RequestManager requestManager){
+    printf("\n------------------------------------------------\n");
+    printf("requestManager->maxAcceptedRequests: %d\n", requestManager->maxAcceptedRequests);
+    int ws = listGetSize(requestManager->waitingRequestsQueue);
+    int rs = listGetSize(requestManager->runningRequests);
+    printf("waiting requests: %d,running requests: %d\n", ws, rs);
+    printf("waiting list:  ");
+    listPrint(requestManager->waitingRequestsQueue);
+    printf("running list:  ");
+    listPrint(requestManager->runningRequests);
+    printf("\n------------------------------------------------\n");
 }

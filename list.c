@@ -65,7 +65,7 @@ void nodeFree(Node node){
 /// List section
 ///
 
-List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction,FreeDataFunction freeDataFunction){
+List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDataFunction,FreeDataFunction freeDataFunction, Print print){
     List list = malloc(sizeof(*list));
     if(list == NULL){
         return NULL;
@@ -73,6 +73,7 @@ List listCreate(CopyDataFunction copyDataFunction, CompareDataFunction compareDa
     list->copyDataFunction = copyDataFunction;
     list->compareDataFunction = compareDataFunction;
     list->freeDataFunction = freeDataFunction;
+    list->print = print;
 
     list->head = nodeCreate(NULL, copyDataFunction, compareDataFunction,freeDataFunction);
     if(list->head == NULL){
@@ -247,7 +248,7 @@ void listPrint(List list){
         return;
     for (int i = 0; i < size; ++i) {
         node = node->next;
-        int* d = (int*)(node->data);
-        printf("%d. %d\n", i, *d);
+        list->print(node->data);
     }
+//    printf("\n");
 }

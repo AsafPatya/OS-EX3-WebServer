@@ -24,17 +24,24 @@ void* thread_function(void* thread)
         RequestObject requestObject = requestManagerGetReadyRequest(requestsManager);
         requestManagerAddReadyRequest(requestsManager, requestObject);
 
+        printf("\n\n*******request(%d) is now running*******\n\n", requestObject->val);
+        requestManagerPrint(requestsManager);
+
         int fd = requestObject->val;
         struct timeval arrival_time = requestObject->time_arrive;
         struct timeval dispatch_interval = requestObject->disp;
 
         pthread_mutex_unlock(&Lock);
 
+        sleep(25);
+
         requestHandle(fd, this_thread, arrival_time, dispatch_interval);
         Close(fd);
 
         pthread_mutex_lock(&Lock);
         requestManagerRemoveFinishedRequest(requestsManager, requestObject);
+        printf("\n\n*******request(%d) finished*******\n\n", requestObject->val);
+        requestManagerPrint(requestsManager);
         //todo:delete requestObject
         pthread_cond_signal(&QueuesFull);
         pthread_mutex_unlock(&Lock);
@@ -95,6 +102,9 @@ void addSignalAndUnlock(RequestObject requestObject){
     requestManagerAddPendingRequest(requestsManager, requestObject);
     pthread_cond_signal(&WaitingQueueEmpty);
     pthread_mutex_unlock(&Lock);
+
+    printf("\n\n*******request (%d) added to w.q*******\n\n", requestObject->val);
+    requestManagerPrint(requestsManager);
 }
 
 int main(int argc, char *argv[])
@@ -120,6 +130,11 @@ int main(int argc, char *argv[])
     	connfd = Accept(listenfd, (SA *)&clientaddr, (socklen_t *) &clientlen);
         pthread_mutex_lock(&Lock);
 
+        printf("\n\n********************************\n");
+        printf("*******got a request (%d)*******", connfd);
+        printf("\n********************************\n\n");
+//        requestManagerPrint(requestsManager);
+
         if (requestManagerCanAcceptRequests(requestsManager))
         {
             RequestObject requestObject = createRequestObject(connfd);
@@ -128,7 +143,8 @@ int main(int argc, char *argv[])
         else
         // not enough buffers are available (start of part2)
         {
-            if (strcmp(schedalg, "block"))
+            printf("can't accept any request. starting %s protocol\n", schedalg);
+            if (AreStringsEqual(schedalg, "block"))
             {
                 while (!requestManagerCanAcceptRequests(requestsManager))
                 {
@@ -137,38 +153,44 @@ int main(int argc, char *argv[])
                 RequestObject requestObject = createRequestObject(connfd);
                 addSignalAndUnlock(requestObject);
             }
-            else if (strcmp(schedalg, "dh"))
+            else if (AreStringsEqual(schedalg, "dh"))
             {
+                printf("dh1\n");
                 if (!requestManagerCanAcceptRequests(requestsManager))
                 {
+                    printf("dh2\n");
                     if (!requestManagerHasWaitingRequests(requestsManager))
                     {
                         Close(connfd);
                         pthread_mutex_unlock(&Lock);
                         continue;
                     }
+                    printf("dh3\n");
                     int fd1 = requestManagerRemoveOldestRequestFromWaitingQueue(requestsManager);
+                    printf("removing %d from waiting queue\n", fd1);
                     Close(fd1);
                     RequestObject requestObject = createRequestObject(connfd);
                     addSignalAndUnlock(requestObject);
                 }
             }
-
-            else if (strcmp(schedalg, "random"))
+            else if (AreStringsEqual(schedalg, "random"))
             {
+                printf("rand 1\n");
                 if (!requestManagerCanAcceptRequests(requestsManager))
                 {
                     Close(connfd);
                     pthread_mutex_unlock(&Lock);
                     continue;
                 }
+                printf("rand 2\n");
                 int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                double half_waiting_queue = (((double) waiting_queue_size) / 4);///todo: why 0.25 instead of 0.5
+                double half_waiting_queue = (((double) waiting_queue_size) / 2);///todo: why 0.25 instead of 0.5
                 double num_to_delete = ceil((half_waiting_queue));
+                if(num_to_delete == 0) num_to_delete++;
                 for (int i = 0; i < num_to_delete; i++) {
                     //rand between the queue size
                     int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                    int fd_to_delete = rand() % waiting_queue_size;//TODO: create RO from fd_to_delete
+                    int fd_to_delete = rand() % waiting_queue_size;
 
                     requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
                     Close(fd_to_delete);
@@ -177,9 +199,9 @@ int main(int argc, char *argv[])
                 addSignalAndUnlock(requestObject);
                 //todo: free requestObject
             }
-
-            else if (strcmp(schedalg, "dt"))
+            else if (AreStringsEqual(schedalg, "dt"))
             {
+                //todo: check if there is a need to remove the tail
                 if (!requestManagerCanAcceptRequests(requestsManager))
                 {
                     Close(connfd);

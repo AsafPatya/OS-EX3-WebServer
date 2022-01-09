@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
   /* Open a single connection to the specified host and port */
   clientfd = Open_clientfd(host, port);
-  
+
   clientSend(clientfd, filename);
   clientPrint(clientfd);
     
