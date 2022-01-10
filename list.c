@@ -202,7 +202,7 @@ ListResult listRemoveAtIndex(List list, int index, Data* removedData){
     if(index > list->size || index < 0){
         return  LS_OUT_OF_INDEX;
     }
-    Node currentNode = list->head;
+    Node currentNode = list->head->next;
     for (int i = 0; i < index; ++i) {
         currentNode = currentNode->next;
     }

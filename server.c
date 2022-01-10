@@ -178,25 +178,28 @@ int main(int argc, char *argv[])
                 printf("rand 1\n");
                 if (!requestManagerCanAcceptRequests(requestsManager))
                 {
-                    Close(connfd);
-                    pthread_mutex_unlock(&Lock);
-                    continue;
-                }
-                printf("rand 2\n");
-                int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                double half_waiting_queue = (((double) waiting_queue_size) / 2);///todo: why 0.25 instead of 0.5
-                double num_to_delete = ceil((half_waiting_queue));
-                if(num_to_delete == 0) num_to_delete++;
-                for (int i = 0; i < num_to_delete; i++) {
-                    //rand between the queue size
+                    printf("rand 2\n");
+                    if(!requestManagerHasWaitingRequests(requestsManager))
+                    {
+                        Close(connfd);
+                        pthread_mutex_unlock(&Lock);
+                        continue;
+                    }
+                    printf("rand 3\n");
                     int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                    int fd_to_delete = rand() % waiting_queue_size;
-
-                    requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
-                    Close(fd_to_delete);
+                    double half_waiting_queue = (((double) waiting_queue_size) / 2);///todo: why 0.25 instead of 0.5
+                    double num_to_delete = ceil((half_waiting_queue));
+                    for (int i = 0; i < num_to_delete; i++) {
+                        //rand between the queue size
+                        int waiting_queue_size2 = requestManagerGetWaitingQueueSize(requestsManager);
+                        int fd_to_delete = rand() % waiting_queue_size2;
+                        requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
+                        Close(fd_to_delete);
+                    }
+                    printf("rand 4\n");
+                    RequestObject requestObject = createRequestObject(connfd);
+                    addSignalAndUnlock(requestObject);
                 }
-                RequestObject requestObject = createRequestObject(connfd);
-                addSignalAndUnlock(requestObject);
                 //todo: free requestObject
             }
             else if (AreStringsEqual(schedalg, "dt"))
