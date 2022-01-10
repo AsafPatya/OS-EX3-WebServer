@@ -92,9 +92,10 @@ void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, 
     //todo: there will be leak of memory
 }
 
-void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index) {
+RequestObject requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index) {
     RequestObject requestObject1 = createRequestObject(-2);
     listRemoveAtIndex(requestManager->waitingRequestsQueue, index, (void**)(&requestObject1));
+    return requestObject1;
 }
 
 int requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {

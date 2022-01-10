@@ -29,7 +29,7 @@ void requestManagerAddPendingRequest(RequestManager requestManager, RequestObjec
 void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
 void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject);//todo: return status instead
-void requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index);//todo: return status instead
+RequestObject requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index);//todo: return status instead
 
 int requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager);//todo: return status instead
 

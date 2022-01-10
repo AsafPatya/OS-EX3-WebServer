@@ -33,7 +33,7 @@ void* thread_function(void* thread)
 
         pthread_mutex_unlock(&Lock);
 
-        sleep(25);
+//        sleep(25);
 
         requestHandle(fd, this_thread, arrival_time, dispatch_interval);
         Close(fd);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
         else
         // not enough buffers are available (start of part2)
         {
-            printf("can't accept any request. starting %s protocol\n", schedalg);
+            printf("can't accept any request. starting --%s-- procedure\n", schedalg);
             if (AreStringsEqual(schedalg, "block"))
             {
                 while (!requestManagerCanAcceptRequests(requestsManager))
@@ -187,14 +187,15 @@ int main(int argc, char *argv[])
                     }
                     printf("rand 3\n");
                     int waiting_queue_size = requestManagerGetWaitingQueueSize(requestsManager);
-                    double half_waiting_queue = (((double) waiting_queue_size) / 2);///todo: why 0.25 instead of 0.5
+                    double half_waiting_queue = (((double) waiting_queue_size) / 2);
                     double num_to_delete = ceil((half_waiting_queue));
                     for (int i = 0; i < num_to_delete; i++) {
                         //rand between the queue size
                         int waiting_queue_size2 = requestManagerGetWaitingQueueSize(requestsManager);
                         int fd_to_delete = rand() % waiting_queue_size2;
-                        requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
-                        Close(fd_to_delete);
+                        RequestObject requestObject = requestManagerRemoveRequestFromWaitingQueueAtIndex(requestsManager, fd_to_delete);
+                        printf("closing fd number %d\n", requestObject->val);
+                        Close(requestObject->val);
                     }
                     printf("rand 4\n");
                     RequestObject requestObject = createRequestObject(connfd);
