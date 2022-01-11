@@ -61,6 +61,12 @@ void nodeFree(Node node){
     free(node);
 }
 
+void nodeDelete(Node node){
+    Node next = node->next;
+    nodeFree(node);
+    if(next != NULL) nodeDelete(next);
+}
+
 ///
 /// List section
 ///
@@ -251,4 +257,9 @@ void listPrint(List list){
         list->print(node->data);
     }
 //    printf("\n");
+}
+
+void listDelete(List list){
+    nodeDelete(list->head);
+    free(list);
 }

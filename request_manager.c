@@ -33,7 +33,7 @@ RequestManager requestManagerCreate(int threadsNum, int maxAcceptedRequests){
     }
     requestManager->waitingRequestsQueue = listCreate(copyData, compareData, freeData, printData);
     if(requestManager->waitingRequestsQueue == NULL){
-        //todo:list free
+        listDelete(requestManager->runningRequests);
         free(requestManager);
         return NULL;
     }
@@ -83,12 +83,17 @@ void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject 
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
     RequestObject requestObject1 = createRequestObject(-2);
     listRemoveAtData(requestManager->runningRequests,requestObject,(void**)(&requestObject1));
+    deleteRequestObject(requestObject1);
+    deleteRequestObject(requestObject);
     //todo: there will be leak of memory
 }
 
 void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject){
     RequestObject requestObject1 = createRequestObject(-2);
     listRemoveAtData(requestManager->waitingRequestsQueue,requestObject,(void**)(&requestObject1));
+    deleteRequestObject(requestObject1);
+    deleteRequestObject(requestObject);
+
     //todo: there will be leak of memory
 }
 
@@ -100,11 +105,15 @@ RequestObject requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager 
 
 int requestManagerRemoveOldestRequestFromWaitingQueue(RequestManager requestManager) {
     RequestObject requestObject = listPopFront(requestManager->waitingRequestsQueue);
-    return requestObject->val;
+    int c = requestObject->val;
+    deleteRequestObject(requestObject);
+    return c;
 }
 
 void requestManagerDelete(RequestManager requestManager){
-    //todo:
+    listDelete(requestManager->waitingRequestsQueue);
+    listDelete(requestManager->runningRequests);
+    free(requestManager);
 }
 
 

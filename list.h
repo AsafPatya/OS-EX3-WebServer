@@ -59,4 +59,6 @@ ListResult listRemoveAtData(List list, Data data, Data* removedData);
 int listGetSize(List list);
 
 void listPrint(List list);
+
+void listDelete(List list);
 #endif //LIST_GENERIC_LIST_H
