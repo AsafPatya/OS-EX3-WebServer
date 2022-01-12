@@ -72,12 +72,14 @@ RequestObject requestManagerGetReadyRequest(RequestManager requestManager){
 void requestManagerAddPendingRequest(RequestManager requestManager, RequestObject requestObject) {
     //todo: add only if there is enough room
     listPushBack(requestManager->waitingRequestsQueue, requestObject);
+    deleteRequestObject(requestObject);///we are deleting the current r.o because the list copies it
 }
 
 void requestManagerAddReadyRequest(RequestManager requestManager, RequestObject requestObject){
     //todo: add only if there is enough room
     requestObjectUpdateDispatchTime(requestObject);
     listPushBack(requestManager->runningRequests, requestObject);
+//    deleteRequestObject(requestObject);///we are deleting the current r.o because the list copies it
 }
 
 void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestObject requestObject){
@@ -85,7 +87,6 @@ void requestManagerRemoveFinishedRequest(RequestManager requestManager, RequestO
     listRemoveAtData(requestManager->runningRequests,requestObject,(void**)(&requestObject1));
     deleteRequestObject(requestObject1);
     deleteRequestObject(requestObject);
-    //todo: there will be leak of memory
 }
 
 void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, RequestObject requestObject){
@@ -93,8 +94,6 @@ void requestManagerRemoveRequestFromWaitingQueue(RequestManager requestManager, 
     listRemoveAtData(requestManager->waitingRequestsQueue,requestObject,(void**)(&requestObject1));
     deleteRequestObject(requestObject1);
     deleteRequestObject(requestObject);
-
-    //todo: there will be leak of memory
 }
 
 RequestObject requestManagerRemoveRequestFromWaitingQueueAtIndex(RequestManager requestManager, int index) {

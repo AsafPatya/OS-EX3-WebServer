@@ -22,7 +22,6 @@ int requestManagerGetWaitingQueueSize(RequestManager requestManager);
 int requestManagerHasWaitingRequests(RequestManager requestManager);
 int requestManagerCanAcceptRequests(RequestManager requestManager);
 
-//todo: change function name
 RequestObject requestManagerGetReadyRequest(RequestManager requestManager);//todo: return status instead
 
 void requestManagerAddPendingRequest(RequestManager requestManager, RequestObject requestObject);//todo: return status instead

@@ -40,9 +40,9 @@ void* thread_function(void* thread)
 
         pthread_mutex_lock(&Lock);
         requestManagerRemoveFinishedRequest(requestsManager, requestObject);
+
 //        printf("\n\n*******request(%d) finished*******\n\n", requestObject->val);
 //        requestManagerPrint(requestsManager);
-        //todo:delete requestObject
         pthread_cond_signal(&QueuesFull);
         pthread_mutex_unlock(&Lock);
     }
@@ -194,7 +194,6 @@ int main(int argc, char *argv[])
                     RequestObject requestObject = createRequestObject(connfd);
                     addSignalAndUnlock(requestObject);
                 }
-                //todo: free requestObject
             }
             else if (AreStringsEqual(schedalg, "dt"))
             {
